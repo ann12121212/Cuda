@@ -1,0 +1,27 @@
+#include<cuda_runtime.h>
+#include<bits/stdc++.h>
+using namespace std;
+__global__ void sm(int *a,int *b,int n){
+    int i=blockDim.x*blockIdx.x+threadIdx.x;
+    if(i<n){
+        b[i]+=a[i];
+    }
+}
+int main(){
+    int n;
+    cin>>n;
+vector<int> h_a(n), h_b(n);
+
+    for(int i=0;i<n;i++)cin>>h_a[i]>>h_b[i];
+int *d_a,*d_b;
+cudaMalloc((void**)&d_a,sizeof(int)*n);
+cudaMalloc((void**)&d_b,sizeof(int)*n);
+    cudaMemcpy(d_a,h_a.data(),n*sizeof(int),cudaMemcpyHostToDevice);
+     cudaMemcpy(d_b,h_b.data(),n*sizeof(int),cudaMemcpyHostToDevice);
+     sm<<<(n+255)/256,256>>>(d_a,d_b,n);
+     cudaMemcpy(h_b.data(),d_b,n*sizeof(int),cudaMemcpyDeviceToHost);
+     cudaDeviceSynchronize();
+     cudaFree(d_b);
+     cudaFree(d_a);
+     
+}
